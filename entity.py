@@ -1,20 +1,31 @@
 import pygame
 
 
-class Entity:
+class Entity(pygame.sprite.Sprite):
     def __init__(self, position, color, size, lift_speed=pygame.Vector2(0, -20)):
+        super().__init__()
         self.position = position
         self.color = color
         self.size = size
         self.gravity = 30
         self.lift_speed = lift_speed
         self.speed = pygame.Vector2(0, 0)
+        
+        self.image = pygame.Surface([size * 2, size * 2])
+        pygame.draw.circle(
+            self.image,
+            self.color,
+            (size,size),
+            self.size
+        )
+        self.rect = self.image.get_rect()
+
+        # pygame.draw.rect(self.image, (255, 255, 255), self.rect, 5, 1)
+
 
     def update(self, dt):
         self._gravity_fall(dt)
-
-    def draw(self, screen):
-        pygame.draw.circle(screen, color=self.color, center=self.position, radius=self.size)
+        self.rect.center = self.position
 
     def on_event(self, event):
         self._handle_movement(event)

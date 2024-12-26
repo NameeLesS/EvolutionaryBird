@@ -16,7 +16,10 @@ class Game:
         self.dt = 0
 
         self.entity = Entity(pygame.Vector2(50, 0), color=pygame.color.Color(100, 100, 10), size=40)
-        self.walls = Walls(self.screen_resolution, pygame.Vector2(5), 400, pygame.color.Color(10, 100, 50))
+        self.walls = Walls(self.screen_resolution, pygame.Vector2(5, 0), 400, pygame.color.Color(10, 100, 50))
+
+        self.entity_group = pygame.sprite.Group(self.entity)
+
 
         self.loop()
 
@@ -36,16 +39,24 @@ class Game:
         pygame.quit()
 
     def update(self):
-        self.entity.update(self.dt)
+        self.entity_group.update(self.dt)
         self.walls.update(self.dt)
+
+        for entity in self.entity_group:
+            collide = pygame.sprite.spritecollide(entity, self.walls.walls_group, False)
+            if collide:
+                entity.kill()
+                del self.entity
+
 
     def on_event(self, event):
         self._quit_event(event)
-        self.entity.on_event(event)
-        self.walls.on_event(event)
+        
+        for entity in self.entity_group:
+            entity.on_event(event)
 
     def render(self):
-        self.entity.draw(self.screen)
+        self.entity_group.draw(self.screen)
         self.walls.draw(self.screen)
 
     def reset(self):
