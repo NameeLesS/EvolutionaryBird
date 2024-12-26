@@ -1,11 +1,12 @@
 import pygame
 from entity import Entity
+from wall import Walls
 
 
 class Game:
     def __init__(self, fps, screen_resolution):
         self.fps = fps
-        self.screen_resolution = screen_resolution
+        self.screen_resolution = pygame.Vector2(screen_resolution)
 
     def init(self):
         pygame.init()
@@ -15,6 +16,7 @@ class Game:
         self.dt = 0
 
         self.entity = Entity(pygame.Vector2(50, 0), color=pygame.color.Color(100, 100, 10), size=40)
+        self.walls = Walls(self.screen_resolution, pygame.Vector2(5), 400, pygame.color.Color(10, 100, 50))
 
         self.loop()
 
@@ -35,13 +37,16 @@ class Game:
 
     def update(self):
         self.entity.update(self.dt)
+        self.walls.update(self.dt)
 
     def on_event(self, event):
         self._quit_event(event)
         self.entity.on_event(event)
+        self.walls.on_event(event)
 
     def render(self):
         self.entity.draw(self.screen)
+        self.walls.draw(self.screen)
 
     def reset(self):
         pass
