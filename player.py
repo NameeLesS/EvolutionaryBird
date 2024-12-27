@@ -3,14 +3,14 @@ import events
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, id, position, color, size, lift_speed=pygame.Vector2(0, -20)):
+    def __init__(self, id, position, color, size, lift_strength=pygame.Vector2(0, -10)):
         super().__init__()
         self.id = id
         self.position = position
         self.color = color
         self.size = size
-        self.gravity = 70
-        self.lift_speed = lift_speed
+        self.gravity = 50
+        self.lift_strength = lift_strength
         self.speed = pygame.Vector2(0, 0)
         
         self.image = pygame.Surface([size * 2, size * 2], pygame.SRCALPHA)
@@ -39,8 +39,8 @@ class Player(pygame.sprite.Sprite):
     def _handle_movement(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
-                self.speed = self.lift_speed.copy()
+                self.speed = self.lift_strength.copy()
 
         if event.type == events.MOVEUP_EVENT:
             if event.id == self.id:
-                self.speed = self.lift_speed.copy()
+                self.speed = self.lift_strength.copy()

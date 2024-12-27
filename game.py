@@ -48,6 +48,9 @@ class Game:
         self.players_group.update(self.dt)
         self.walls.update(self.dt)
         self.stats.score = self.walls.score
+        if self.walls.score > self.stats.max_score:
+            self.stats.max_score = self.walls.score
+
         self._on_wall_collision()
 
     def on_event(self, event):
@@ -128,10 +131,14 @@ class GameWrapper(Game):
 
         distances = []
         for player in self.players_group:
-            distance = [abs(player.position.x - hole_center_position[0]), abs(player.position.y - hole_center_position[1])]
+            distance = [hole_center_position[0] - player.position.x,
+                        player.position.y - hole_center_position[1],
+                        player.position.y
+            ]
             standardized_x = (distance[0] - ((0 + self.walls.space + self.walls.width) / 2)) / np.sqrt((self.walls.space + self.walls.width)**2 / 12)
-            standardized_y = (distance[1] - ((0 + self.screen_resolution.y) / 2)) / np.sqrt(self.screen_resolution.y**2 / 12)
-            distance = [standardized_x, standardized_y]
+            standardized_y = distance[1] / np.sqrt((2 * self.screen_resolution.y)**2 / 12) # since y_distance takes on values from range [-a, a] the mean value is 0
+            standardized_pos = (distance[2] - (self.screen_resolution.y / 2)) / np.sqrt((self.screen_resolution.y ** 2) / 12)
+            distance = [standardized_x, standardized_y, standardized_pos]
             distances.append([player.id, distance])
         
         return distances

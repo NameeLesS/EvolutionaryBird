@@ -44,8 +44,4 @@ class FullyConnectedLayer:
         self.biases = np.random.randn(n_neurons)
     
     def __call__(self, x):
-        return np.matmul(x, self.weights) + self.biases # TODO: Check if it is correctly implemented
-    
-
-# network = Network(2)
-# print(network.predict(np.array([2, 3]).reshape(1, -1)))
+        return np.matmul(x, self.weights) + self.biases

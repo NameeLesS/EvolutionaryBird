@@ -8,25 +8,26 @@ from network import Network
 
 
 class BirdEvolution:
-    def __init__(self, n_neurons=10):
-        self.network = Network(input_size=2, n_neurons=n_neurons)
+    def __init__(self, n_neurons=10, input_size=3):
+        self.network = Network(input_size=3, n_neurons=n_neurons)
         self.game = GameWrapper(fps=120, screen_resolution=(3000, 1500))
         self.n_neurons = n_neurons
+        self.input_size = input_size
         self.population = None
         self.is_running = False
 
     
-    def evolve(self, n_generations, pop_size, p_mutation_initial, p_mutation_min, offspring_size):
+    def evolve(self, n_generations, pop_size, p_mutation_initial, p_mutation_min, offspring_size, tournament_size=4):
         
         self.population = self._init_population(pop_size)
 
         for i in range(n_generations):
             fitnesses = self._evaluate_population(pop_size)
-            offspring = self._create_offspring(fitnesses,  self._mutation_decay(p_mutation_initial, p_mutation_min, i + 1), pop_size, offspring_size)
+            offspring = self._create_offspring(fitnesses,  self._mutation_decay(p_mutation_initial, p_mutation_min, i + 1), pop_size, offspring_size, tournament_size)
             self._merge_solutions(offspring, fitnesses)
 
     def _init_population(self, pop_size):
-        individual_size = ((2 * self.n_neurons) + (self.n_neurons * 1) + self.n_neurons + 1)
+        individual_size = ((self.input_size * self.n_neurons) + (self.n_neurons * 1) + self.n_neurons + 1)
         return np.random.randn(individual_size * pop_size).reshape(pop_size, individual_size)
 
     def _evaluate_population(self, pop_size):
@@ -53,8 +54,8 @@ class BirdEvolution:
 
         return np.array(copy.deepcopy(self.game.player_scores)) # [individual_idx, fitness]
     
-    def _create_offspring(self, fitnesses,  p_mutation, pop_size, offspring_size):
-        offspring = self._crossover(self._get_parents(fitnesses, offspring_size))
+    def _create_offspring(self, fitnesses,  p_mutation, pop_size, offspring_size, tournament_size):
+        offspring = self._crossover(self._get_parents(fitnesses, offspring_size, k=tournament_size))
         offspring = self._mutate(offspring, p_mutation)
         return offspring
     
@@ -87,7 +88,7 @@ class BirdEvolution:
         solutions = solutions + mutations
         return solutions
 
-    def _get_parents(self, fitnesses, offspring_size, selection_type='tournament', k=4):
+    def _get_parents(self, fitnesses, offspring_size, selection_type='best', k=4):
         parents = None
         if selection_type == 'tournament':
             parents = self._tournament_selection(fitnesses, offspring_size, k)

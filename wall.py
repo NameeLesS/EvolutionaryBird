@@ -34,7 +34,7 @@ class WallSprite(pygame.sprite.Sprite):
 
 
 class Walls:
-    def __init__(self, screen_resolution, speed, space, color, hole_size=250, width=100, hole_padding=100):
+    def __init__(self, screen_resolution, speed, space, color, hole_size=250, width=50, hole_padding=100):
         """
         space: Size of the free space between next walls
         hole_size: Size of the empty space between two walls
