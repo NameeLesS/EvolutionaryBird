@@ -10,19 +10,19 @@ from network import Network
 class BirdEvolution:
     def __init__(self, n_neurons=10):
         self.network = Network(input_size=2, n_neurons=n_neurons)
-        self.game = GameWrapper(fps=60, screen_resolution=(3000, 1500))
+        self.game = GameWrapper(fps=120, screen_resolution=(3000, 1500))
         self.n_neurons = n_neurons
         self.population = None
         self.is_running = False
 
     
-    def evolve(self, n_generations, pop_size, p_mutation, offspring_size):
+    def evolve(self, n_generations, pop_size, p_mutation_initial, p_mutation_min, offspring_size):
         
         self.population = self._init_population(pop_size)
 
         for i in range(n_generations):
             fitnesses = self._evaluate_population(pop_size)
-            offspring = self._create_offspring(fitnesses,  p_mutation, pop_size, offspring_size)
+            offspring = self._create_offspring(fitnesses,  self._mutation_decay(p_mutation_initial, p_mutation_min, i + 1), pop_size, offspring_size)
             self._merge_solutions(offspring, fitnesses)
 
     def _init_population(self, pop_size):
@@ -38,6 +38,8 @@ class BirdEvolution:
             self.game.reset()
             self.game.create_players(pop_size)
         
+        self.game.stats.generation += 1
+
         is_over = False
         while not is_over:
             is_over, distances = self.game.loop()
@@ -85,33 +87,23 @@ class BirdEvolution:
         solutions = solutions + mutations
         return solutions
 
-    def _get_parents(self, fitnesses, offspring_size):
-        return fitnesses[-offspring_size:, 0].reshape((offspring_size // 2, 2))
+    def _get_parents(self, fitnesses, offspring_size, selection_type='tournament', k=4):
+        parents = None
+        if selection_type == 'tournament':
+            parents = self._tournament_selection(fitnesses, offspring_size, k)
+        elif selection_type == 'best':
+            parents = fitnesses[-offspring_size:, 0].reshape((offspring_size // 2, 2))
+        return parents
+    
+    def _tournament_selection(self, fitnesses, offspring_size, k):
+        fitnesses = fitnesses[np.argsort(fitnesses[:, 0])]
+        tournaments = np.random.randint(0, self.population.shape[0], size=offspring_size * k).reshape((offspring_size, k))
+        winners = []
+        for tournament in tournaments:
+            winners.append(tournament[np.argmax(fitnesses[tournament, 1])])
+
+        return np.array(winners).reshape(offspring_size // 2, 2)
+
+    def _mutation_decay(self, p_initial, p_min, gen):
+        return max(p_initial / gen, p_min)
         
-
-
-bird_evolution = BirdEvolution()
-bird_evolution.evolve(100, pop_size=20, p_mutation=0.1, offspring_size=14)
-
-
-# Initialize population
-# Evaluate population (play game until it ends)
-# Choose parents
-# Create offspring
-# Mutate offspring
-# Replace the worst part with the offspring
-
-
-# game = GameWrapper(fps=60, screen_resolution=(3000, 1500))
-# players = game.create_players(10)
-# game.init()
-
-# is_over = False
-# while True:
-#     is_over, distances = game.loop()
-
-#     if is_over:
-#         print(game.player_score)
-#         game.reset()
-#         players = game.create_players(10)
-

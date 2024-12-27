@@ -9,7 +9,7 @@ class Player(pygame.sprite.Sprite):
         self.position = position
         self.color = color
         self.size = size
-        self.gravity = 50
+        self.gravity = 70
         self.lift_speed = lift_speed
         self.speed = pygame.Vector2(0, 0)
         

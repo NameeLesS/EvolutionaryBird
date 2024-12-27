@@ -3,6 +3,7 @@ import numpy as np
 import itertools
 from player import Player
 from wall import Walls
+from stats import Stats
 
 
 class Game:
@@ -11,6 +12,7 @@ class Game:
         self.screen_resolution = pygame.Vector2(screen_resolution)
         self.players_group = pygame.sprite.Group()
         self.player_id_generator = itertools.count()
+        self.stats = None
         self.player_scores = []
         self.distance_travelled = 0 # Meassured in number of frames rendered
 
@@ -20,7 +22,8 @@ class Game:
         self.clock = pygame.time.Clock()
         self.running = True
         self.dt = 0
-
+        
+        self.stats = Stats(30, (255, 255, 255))
         self.reset()
 
         self.loop()
@@ -44,6 +47,7 @@ class Game:
     def update(self):
         self.players_group.update(self.dt)
         self.walls.update(self.dt)
+        self.stats.score = self.walls.score
         self._on_wall_collision()
 
     def on_event(self, event):
@@ -55,12 +59,14 @@ class Game:
     def render(self):
         self.players_group.draw(self.screen)
         self.walls.draw(self.screen)
+        self.stats.draw(self.screen)
 
     def reset(self):
-        self.walls = Walls(self.screen_resolution, pygame.Vector2(5, 0), 400, pygame.color.Color(10, 100, 50))
+        self.walls = Walls(self.screen_resolution, pygame.Vector2(5, 0), 600, pygame.color.Color(10, 100, 50))
         self.distance_travelled = 0
         self.player_id_generator = itertools.count()
         self.player_scores.clear()
+        self.stats.reset()
 
     def _quit_event(self, event):
         if event.type == pygame.QUIT:
@@ -122,7 +128,11 @@ class GameWrapper(Game):
 
         distances = []
         for player in self.players_group:
-            distances.append([player.id, [abs(player.position.x - hole_center_position[0]), abs(player.position.y - hole_center_position[1])]])
+            distance = [abs(player.position.x - hole_center_position[0]), abs(player.position.y - hole_center_position[1])]
+            standardized_x = (distance[0] - ((0 + self.walls.space + self.walls.width) / 2)) / np.sqrt((self.walls.space + self.walls.width)**2 / 12)
+            standardized_y = (distance[1] - ((0 + self.screen_resolution.y) / 2)) / np.sqrt(self.screen_resolution.y**2 / 12)
+            distance = [standardized_x, standardized_y]
+            distances.append([player.id, distance])
         
         return distances
 
