@@ -11,7 +11,7 @@ class Game:
         self.screen_resolution = pygame.Vector2(screen_resolution)
         self.players_group = pygame.sprite.Group()
         self.player_id_generator = itertools.count()
-        self.player_score = []
+        self.player_scores = []
         self.distance_travelled = 0 # Meassured in number of frames rendered
 
     def init(self):
@@ -60,7 +60,7 @@ class Game:
         self.walls = Walls(self.screen_resolution, pygame.Vector2(5, 0), 400, pygame.color.Color(10, 100, 50))
         self.distance_travelled = 0
         self.player_id_generator = itertools.count()
-        self.player_score.clear()
+        self.player_scores.clear()
 
     def _quit_event(self, event):
         if event.type == pygame.QUIT:
@@ -68,9 +68,10 @@ class Game:
 
     def _on_wall_collision(self):
         for player in self.players_group:
-            collide = pygame.sprite.spritecollide(player, self.walls.walls_group, False)
-            if collide:
-                self.player_score.append([player.id, self.distance_travelled])
+            collide_wall = pygame.sprite.spritecollide(player, self.walls.walls_group, False)
+            collide_boundaries = player.position.y > self.screen_resolution.y or player.position.y < 0
+            if collide_wall or collide_boundaries:
+                self.player_scores.append([player.id, self.distance_travelled])
                 player.kill()
 
 
@@ -82,7 +83,7 @@ class GameWrapper(Game):
     def loop(self):
         self.distance_travelled += 1
         self._send_events()
-        
+
         for event in pygame.event.get():
             self.on_event(event)
 
@@ -111,7 +112,6 @@ class GameWrapper(Game):
     def _send_events(self):
         for event in self._events:
             pygame.event.post(event)
-            print(event)
 
         self._events.clear()
     
